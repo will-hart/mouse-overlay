@@ -56,46 +56,65 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands, mut windows: Query<&mut Window, With<PrimaryWindow>>) {
+fn setup(
+    mut commands: Commands,
+    indicators: Res<IndicatorAssets>,
+    mut windows: Query<&mut Window, With<PrimaryWindow>>,
+) {
     commands.spawn(Camera2d);
 
     for mut window in &mut windows {
         window.mode =
             WindowMode::Fullscreen(MonitorSelection::Current, VideoModeSelection::Current);
     }
+
+    commands.spawn((MouseIndicator(true), indicators.left(), Visibility::Hidden));
+    commands.spawn((
+        MouseIndicator(false),
+        indicators.right(),
+        Visibility::Hidden,
+    ));
 }
 
 fn monitor_event_queue(
-    mut commands: Commands,
-    assets: Res<IndicatorAssets>,
     queue: ResMut<GlobalMouseEventQueue>,
-    indicators: Query<(Entity, &MouseIndicator)>,
+    mut indicators: Query<(&MouseIndicator, &mut Visibility, &mut Transform)>,
 ) {
     if let Ok(mut queue) = queue.0.write() {
         while let Some(event) = queue.pop_front() {
-            match event {
-                MouseEvent::LeftDown => {
-                    info!("Handling spawn left");
-                    commands.spawn((MouseIndicator(true), assets.left()));
-                }
-                MouseEvent::LeftUp => {
-                    info!("Handling despawn left");
-                    for (entity, indicator) in &indicators {
+            for (indicator, mut visibility, mut tx) in &mut indicators {
+                match event {
+                    MouseEvent::LeftDown => {
+                        trace!("Handling spawn left");
                         if indicator.0 {
-                            commands.entity(entity).despawn();
+                            *visibility = Visibility::Visible;
                         }
                     }
-                }
-                MouseEvent::RightDown => {
-                    trace!("Handling spawn right");
-                    commands.spawn((MouseIndicator(false), assets.right()));
-                }
-                MouseEvent::RightUp => {
-                    trace!("Handling despawn right");
-                    for (entity, indicator) in &indicators {
-                        if !indicator.0 {
-                            commands.entity(entity).despawn();
+                    MouseEvent::LeftUp => {
+                        trace!("Handling despawn left");
+
+                        if indicator.0 {
+                            *visibility = Visibility::Hidden;
                         }
+                    }
+                    MouseEvent::RightDown => {
+                        trace!("Handling spawn right");
+
+                        if !indicator.0 {
+                            *visibility = Visibility::Visible;
+                        }
+                    }
+                    MouseEvent::RightUp => {
+                        trace!("Handling despawn right");
+
+                        if !indicator.0 {
+                            *visibility = Visibility::Hidden;
+                        }
+                    }
+                    MouseEvent::MouseMove(x, y) => {
+                        trace!("Moving icon to {x}, {y}");
+                        tx.translation.x = (x - 2560 / 2) as f32;
+                        tx.translation.y = -(y - 1440 / 2) as f32;
                     }
                 }
             }
@@ -148,6 +167,7 @@ enum MouseEvent {
     LeftUp,
     RightDown,
     RightUp,
+    MouseMove(i32, i32),
 }
 
 #[derive(Resource, Debug)]
@@ -196,6 +216,14 @@ impl Default for GlobalMouseEventQueue {
             inhibit: InhibitEvent::No,
             defer: true,
             sequencer: false,
+        });
+
+        let move_registry = registry.clone();
+        Mouse::track(move |x, y| {
+            move_registry
+                .write()
+                .unwrap()
+                .push_back(MouseEvent::MouseMove(x, y));
         });
 
         Self(registry.clone())
