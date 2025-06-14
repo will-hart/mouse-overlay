@@ -112,6 +112,7 @@ fn monitor_event_queue(
                         }
                     }
                     MouseEvent::MouseMove(x, y) => {
+                        // everybody has the same monitor resolution right?
                         trace!("Moving icon to {x}, {y}");
                         tx.translation.x = (x - 2560 / 2) as f32;
                         tx.translation.y = -(y - 1440 / 2) as f32;

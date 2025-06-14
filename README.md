@@ -22,6 +22,8 @@ this to work on Windows 11 with an Nvidia GPU I had to follow this:
 
 If you right and left click at the same time the indicators overlap :shrug:
 
+It currently only works if your monitor resolution is the same as mine lol
+
 ## License
 
 MIT / Apache
