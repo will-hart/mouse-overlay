@@ -1,7 +1,8 @@
 [package]
-name = "mouse-highlighter"
+name = "mouse-overlay"
 version = "0.1.0"
 edition = "2024"
+authors = ["Will Hart <391950+will-hart@users.noreply.github.com>"]
 
 [dependencies]
 bevy = "0.16.1"

@@ -2828,7 +2828,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mouse-highlighter"
+name = "mouse-overlay"
 version = "0.1.0"
 dependencies = [
  "bevy",
