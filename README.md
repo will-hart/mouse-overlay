@@ -1,5 +1,7 @@
 # Mouse Overlay
 
+![GIF of the app working](./screenshots/app_example.gif)
+
 This is a super basic bevy app that creates a moues overlay when buttons
 are pressed. It works by
 
